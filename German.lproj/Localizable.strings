@@ -1,0 +1,26 @@
+"No" = "Nein";
+"Yes" = "Ja";
+
+"DeleteTitle" = "Wollen Sie das Überwachen der ausgewählten Verzeichnisse stoppen?";
+"DeleteMessage"= "Dateien, die Sie danach in diesen Ordnern ändern, werden nicht mehr automatisch gesichert!";
+
+"ErrorStartTitle" = "Beim Starten der Ordnerüberwachung ist ein Fehler aufgetreten!";
+"ErrorStartMessage" = "Bitte beenden Sie TriggerBackup starten Sie es erneut.";
+
+"ErrorAddFolderTitle" = "Das ausgewählte Verzeichnis ist nicht erlaubt!";
+"ErrorAddFolderMessage" = "TriggerBackup ist nicht dafür gedacht, um ganze Volumes zu überwachen. Bitte wählen Sie einen anderen Ordner aus.";
+
+"ErrorNoError" = "...läuft geschmeidig.";
+"ErrorChecksumError" = "...meldet den Fehler 'MD5-Prüfsummen stimmen nicht überein'";
+"ErrorBackupFolderMissingError" = "...meldet einen Fehler 'Backup-Ordner fehlt'";
+
+"FolderEmpty" = "Ordner '%@' enthält 1 Objekt.";
+"FolderOneObject" = "Ordner '%@' ist leer.";
+"FolderLotsOfObjects" = "Ordner '%@' enthält %u Objekte.";
+
+"FolderWatchNotRunning" = "Status: läuft nicht, bitte neu starten";
+"FolderWatchNothingToWatch" = "Status: läuft nicht, weil nichts zu überwachen";
+"FolderWatchUpdated" = "Geändert am %@";
+"FolderWatchBackupDirMissing" = "Status: Backup-Ordner fehlt";
+
+"StatusItemToolTip" = "Mit diesem Menü konfigurieren Sie TriggerBackup.";

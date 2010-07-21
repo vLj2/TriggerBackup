@@ -1,0 +1,26 @@
+"No" = "No";
+"Yes" = "Yes";
+
+"DeleteTitle" = "Stop watching the selected dictionaries?";
+"DeleteMessage"= "Changes to the files in the selected dictionaries will no longer be backuped automatically!";
+
+"ErrorStartTitle" = "An error occured while starting the folder surveillance!";
+"ErrorStartMessage" = "Please quit »TriggerBackup« and restart it.";
+
+"ErrorAddFolderTitle" = "The selected directory is not a valid choice!";
+"ErrorAddFolderMessage" = "TriggerBackup will not watch over the root directory of a volume. Please select another folder.";
+
+"ErrorNoError" = "...running smoothly.";
+"ErrorChecksumError" = "...reported error: MD5 checksums did not match";
+"ErrorBackupFolderMissingError" = "...reported error: backup folder missing";
+
+"FolderEmpty" = "Folder '%@' contains 1 object.";
+"FolderOneObject" = "Folder '%@' is empty.";
+"FolderLotsOfObjects" = "Folder '%@' contains %u objects.";
+
+"FolderWatchNotRunning" = "Status: not running, please restart";
+"FolderWatchNothingToWatch" = "Status: not running, nothing to watch";
+"FolderWatchUpdated" = "Status: updated at %@";
+"FolderWatchBackupDirMissing" = "Status: backup directory is missing";
+
+"StatusItemToolTip" = "Use this menu to configure TriggerBackup.";
