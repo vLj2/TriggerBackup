@@ -1,8 +1,22 @@
 // ©2009 Andreas Beier & c't - Magazin für Computertechnik (adb@ctmagazin.de)
+// Growl support added by h0sch1 (hoschi@anukis.de)
 
 #include <sys/stat.h>
 #import "AppController.h"
 #import <CommonCrypto/CommonDigest.h>
+
+
+// static function to send Growl messages
+static void sendGrowlMessage(NSString *growlMessage, BOOL isSticky) 
+{
+	[GrowlApplicationBridge notifyWithTitle:@"TriggerBackup"
+								description:growlMessage
+						   notificationName:@"Information"
+								   iconData:nil
+								   priority:1
+								   isSticky:isSticky
+							   clickContext:nil]; 	
+}
 
 
 static BOOL filesAreIdentical(NSString *file1, NSString *file2)
@@ -27,9 +41,8 @@ static BOOL filesAreIdentical(NSString *file1, NSString *file2)
 
 			for (NSInteger i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
 				if (md5Result[i] != md5BackupResult[i]) {
-					//
 					NSLog(@"TriggerBackup: MD5 checksum error: %@ -> %@", file1, file2);
-					//
+					sendGrowlMessage([NSString stringWithFormat:NSLocalizedString(@"GrowlChecksumError", nil), file1], NO);
 					return NO;
 				}
 			}
@@ -47,9 +60,11 @@ static BOOL filesAreIdentical(NSString *file1, NSString *file2)
 //			return [md5String isEqualToString:md5BackupString];
 		} else {
 			NSLog(@"TriggerBackup: MD5 checksum error: source file %@ not readable", file1);
+			sendGrowlMessage([NSString stringWithFormat:NSLocalizedString(@"GrowlChecksumError", nil), file1], NO);
 		}
 	} else {
 		NSLog(@"TriggerBackup: MD5 checksum error:  backup file %@ not readable", file2);
+		sendGrowlMessage([NSString stringWithFormat:NSLocalizedString(@"GrowlChecksumError", nil), file2], NO);
 	}
 	
 	return NO;
@@ -74,6 +89,7 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	AppController *appController = (AppController *)clientCallBackInfo;
+	
 	NSString *backupDir = [[appController->backupPathControl URL] relativePath];
 	NSFileManager *fm = [NSFileManager defaultManager];
 	char **paths = eventPaths;
@@ -85,6 +101,7 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 		[appController->menuItem setImage:[NSImage imageNamed:@"MenuIconNotRunning"]];
 		[appController->statusField setStringValue:NSLocalizedString(@"FolderWatchBackupDirMissing", nil)];
 		NSAttributedString *attrString = [[[NSAttributedString alloc] initWithString:NSLocalizedString(@"ErrorBackupFolderMissingError", nil) attributes: strAttributes] autorelease];
+		sendGrowlMessage(NSLocalizedString(@"GrowlBackupFolderMissingError", nil), YES);
 		[errorItem setAttributedTitle:attrString];
 		appController->errorWasSeen = NO;
 		return;
@@ -96,7 +113,6 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 
     for (NSUInteger i = 0; i < numEvents; i++) { // Anzahl der gemeldeten, geänderten Verzeichnisse
 		NSString *workDir = [NSString stringWithUTF8String:paths[i]];
-
 		result = FSPathMakeRef((UInt8 *)paths[i], &fileRef, (Boolean *)NULL);
 		result = LSCopyItemInfoForRef(&fileRef, kLSRequestAllFlags, &infoRecord);
 		UInt32 isPackage = infoRecord.flags & kLSItemInfoIsPackage;
@@ -106,7 +122,6 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 			NSString *filePath = workDir;
 			NSString *backupFilePath = [backupDir stringByAppendingPathComponent:filePath];
 			NSDictionary *fileAttributes = [fm attributesOfItemAtPath:filePath error:NULL];
-			
 			if (![fm fileExistsAtPath:backupFilePath]) { // Package existiert noch nicht im Backup
 				// sichern
 				[fm createDirectoryAtPath:[backupFilePath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:NULL];
@@ -328,6 +343,11 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 	
 	isRunning = NO;
 	
+	BOOL isDir = NO;
+	NSString *backupDir = [[backupPathControl URL] relativePath];
+	if (![[NSFileManager defaultManager] fileExistsAtPath:backupDir isDirectory:&isDir] || !isDir) // Backup-Verzeichnis fehlt oder ist kein Verzeichnis							
+		sendGrowlMessage(NSLocalizedString(@"GrowlBackupFolderMissingError", nil), YES);
+		
 	if ([foldersToBackup count] > 0) { // Daten vorhanden, neuen fsStream anlegen
 		// Daten vorbereiten
 		NSMutableArray *pathsToWatch = [NSMutableArray arrayWithCapacity:[foldersToBackup count]];
@@ -344,9 +364,9 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 									   kFSEventStreamEventIdSinceNow,
 									   1.0,
 									   kFSEventStreamCreateFlagNone);
-
+		
 		FSEventStreamScheduleWithRunLoop(fsStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);    
-	
+		
 		isRunning = FSEventStreamStart(fsStream); // Überwachung starten
 		if (!isRunning) { // FEHLER
 			NSAlert *errorAlert = [NSAlert alertWithMessageText:NSLocalizedString(@"ErrorStartTitle", nil)
@@ -359,20 +379,18 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 								   modalDelegate:self 
 								  didEndSelector:nil 
 									 contextInfo:nil];
-
+			
 			[statusField setStringValue:NSLocalizedString(@"FolderWatchNotRunning", nil)];
+			[menuItem setImage:[NSImage imageNamed:@"MenuIconNotRunning"]];
 		} else {
 			NSDate *now = [NSDate date];
 			[statusField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"FolderWatchUpdated", nil), [now descriptionWithLocale:[NSLocale currentLocale]]]];
+			[menuItem setImage:[NSImage imageNamed:@"MenuIcon"]];
 		}
 	} else {
 		[statusField setStringValue:NSLocalizedString(@"FolderWatchNothingToWatch", nil)];
-	}
-	
-	if (isRunning)
 		[menuItem setImage:[NSImage imageNamed:@"MenuIcon"]];
-	else
-		[menuItem setImage:[NSImage imageNamed:@"MenuIconNotRunning"]];	
+	}
 }
 
 
@@ -447,7 +465,7 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 			[backupPathControl setURL:[NSURL URLWithString:[[NSString stringWithFormat:@"file://%@", path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 			NSDate *now = [NSDate date];
 			[statusField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"FolderWatchUpdated", nil), [now descriptionWithLocale:[NSLocale currentLocale]]]];
-			[self performSelectorInBackground:@selector(doFullBackupForFolder:) withObject:path]; // initiales Backup für alle zu überwachenden Ordner anstoßen
+			[self performSelectorInBackground:@selector(doFullBackupForFolder:) withObject:nil]; // initiales Backup für alle zu überwachenden Ordner anstoßen
 		}
 		
 		[self saveSettings];
@@ -574,9 +592,10 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 		[[statusMenu itemWithTag:174] setAttributedTitle:attrString];
 		errorWasSeen = NO;
 		return;
-	} else 
+	} else {
 		[menuItem setImage:[NSImage imageNamed:@"MenuIcon"]];
-
+	}
+	
 	if (blinkenTimer && [blinkenTimer isValid]) {
 		[blinkenTimer invalidate];
 		blinkenTimer = nil;
@@ -603,6 +622,15 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 }
 
 
+// Growl registration
+- (NSDictionary*) registrationDictionaryForGrowl 
+{ 
+	NSArray* defaults = [NSArray arrayWithObjects:@"Information", nil]; 
+	NSArray* all = [NSArray arrayWithObjects:@"Information", nil]; 
+	NSDictionary* growlRegDict = [NSDictionary dictionaryWithObjectsAndKeys:defaults, GROWL_NOTIFICATIONS_DEFAULT, all, GROWL_NOTIFICATIONS_ALL, nil]; 
+	return growlRegDict; 
+}
+
 - (void)awakeFromNib 
 {
 	blinkenTimer = nil;
@@ -628,6 +656,12 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 	
     isRunning = NO;
 	fsStream = nil;
+	
+	// Growl-Aktivierung 
+	[GrowlApplicationBridge setGrowlDelegate:self];
+    // if ([GrowlApplicationBridge isGrowlInstalled] == NO || [GrowlApplicationBridge isGrowlRunning] == NO) {
+	// } else {
+	// }
 
     [self updateFSStream];
 }
@@ -653,7 +687,7 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 			// führendes "file://" von oneFolder abschneiden, Einträge in folderList sind file-URLs
 			NSString *srcDirPath = [oneFolder substringFromIndex:7];
 			
-			if ([fm fileExistsAtPath:srcDirPath isDirectory:&isDir] || isDir) { // Quellverzeichnis ist Verzeichnis und vorhanden							
+			if ([fm fileExistsAtPath:srcDirPath isDirectory:&isDir] && isDir) { // Quellverzeichnis ist Verzeichnis und vorhanden							
 				[fm createDirectoryAtPath:[dstDirPath stringByAppendingPathComponent:srcDirPath] withIntermediateDirectories:YES attributes:nil error:NULL];
 
 				NSDirectoryEnumerator *dirEnum = [fm enumeratorAtPath:srcDirPath];
@@ -686,10 +720,7 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 								[fm setAttributes:srcFileAttributes ofItemAtPath:dstFilePath error:NULL]; // für blöde SMB-Server
 							}
 								
-							if (!filesAreIdentical(srcFilePath, dstFilePath)) {
-								// MD5-Prüfsummenfehler
-								// Der Benutzer würde sich an dieser Stelle bestimmt über eine Rückmeldung freuen!?
-							}
+							filesAreIdentical(srcFilePath, dstFilePath); // Ergebnis egal, die Funktion meldet Probleme
 						} // if (isDir)
 					} // if Quelle existiert
 				} // while ((fileName = [dirEnum nextObject]))
@@ -710,11 +741,11 @@ static void fsCallback(ConstFSEventStreamRef streamRef, void *clientCallBackInfo
 	[menuItem setToolTip:NSLocalizedString(@"StatusItemToolTip", nil)];
 	
 	NSString *backupDir = [[NSUserDefaults standardUserDefaults] objectForKey:@"backupFolder"];
-	BOOL isDir;
+	BOOL isDir = NO;
 	
 	[menuItem setImage:[NSImage imageNamed:@"MenuIcon"]];
 
-	if (!isRunning || !([[NSFileManager defaultManager] fileExistsAtPath:backupDir isDirectory:&isDir] || isDir)) {
+	if (![[NSFileManager defaultManager] fileExistsAtPath:backupDir isDirectory:&isDir] || !isDir) {
 		[menuItem setImage:[NSImage imageNamed:@"MenuIconNotRunning"]];
 	}
 	

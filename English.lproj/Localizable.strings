@@ -24,3 +24,6 @@
 "FolderWatchBackupDirMissing" = "Status: backup directory is missing";
 
 "StatusItemToolTip" = "Use this menu to configure TriggerBackup.";
+
+"GrowlChecksumError" = "Checksum error while copying '%@'";
+"GrowlBackupFolderMissingError" = "Backup directory missing";

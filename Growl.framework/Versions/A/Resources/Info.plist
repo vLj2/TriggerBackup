@@ -3,30 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>de_DE</string>
+	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>${EXECUTABLE_NAME}</string>
-	<key>CFBundleIconFile</key>
-	<string>Icon.icns</string>
+	<string>Growl</string>
 	<key>CFBundleIdentifier</key>
-	<string>de.ctmagazin.TriggerBackup</string>
+	<string>com.growl.growlframework</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.78</string>
+	<string>1.2</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>GRRR</string>
 	<key>CFBundleVersion</key>
-	<string>1648</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
+	<string>1.2</string>
 	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>NSUIElement</key>
-	<string>1</string>
+	<string>GrowlApplicationBridge</string>
 </dict>
 </plist>

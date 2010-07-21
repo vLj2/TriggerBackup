@@ -1,9 +1,11 @@
 // ©2009 Andreas Beier & c't - Magazin für Computertechnik (adb@ctmagazin.de)
+// Growl support added by h0sch1 (hoschi@anukis.de)
 
 #import <Cocoa/Cocoa.h>
 #include <CoreServices/CoreServices.h>
+#import <Growl/GrowlApplicationBridge.h>
 
-@interface AppController : NSObject {
+@interface AppController : NSObject <GrowlApplicationBridgeDelegate>{
 	IBOutlet NSWindow		*prefsWindow;
 	IBOutlet NSTableView	*tableView;
 	IBOutlet NSButton		*addFolderButton;
@@ -14,6 +16,7 @@
 	FSEventStreamRef		fsStream;
     FSEventStreamContext	*fsContext;
 	BOOL					isRunning;
+    	
 	
 @public
 	IBOutlet NSPathControl	*backupPathControl;
@@ -22,6 +25,7 @@
 	NSStatusItem			*menuItem;
 	NSTimer					*blinkenTimer;
 	BOOL					errorWasSeen;
+
 }
 
 - (void)deleteAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo;
@@ -33,7 +37,7 @@
 - (IBAction)addFolder:(id)sender;
 - (IBAction)deleteFolder:(id)sender;
 - (IBAction)handleLoginItemStatus:(id)sender;
-
 - (void)setBlinkenTimer:(NSTimer *)newTimer;
+
 
 @end

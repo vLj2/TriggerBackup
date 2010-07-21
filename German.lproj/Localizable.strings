@@ -12,7 +12,7 @@
 
 "ErrorNoError" = "...läuft geschmeidig.";
 "ErrorChecksumError" = "...meldet den Fehler 'MD5-Prüfsummen stimmen nicht überein'";
-"ErrorBackupFolderMissingError" = "...meldet einen Fehler 'Backup-Ordner fehlt'";
+"ErrorBackupFolderMissingError" = "...meldet den Fehler 'Backup-Ordner fehlt'";
 
 "FolderEmpty" = "Ordner '%@' enthält 1 Objekt.";
 "FolderOneObject" = "Ordner '%@' ist leer.";
@@ -24,3 +24,6 @@
 "FolderWatchBackupDirMissing" = "Status: Backup-Ordner fehlt";
 
 "StatusItemToolTip" = "Mit diesem Menü konfigurieren Sie TriggerBackup.";
+
+"GrowlChecksumError" = "Prüfsummenfehler beim Kopieren von '%@'";
+"GrowlBackupFolderMissingError" = "Backup-Verzeichnis fehlt";
